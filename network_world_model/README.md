@@ -7,12 +7,8 @@
 | 24BAD004 | Adhithya K |
 | 24BAD007 | Akhil C |
 | 24BAD014 | Aswin S |
-| 24BAD048 | Jeevapr akash S |
+| 24BAD048 | Jeevaprakash S |
 | 24BAD051 | Kabileeshwaran J |
-
-**Domain:** Cybersecurity and Deep Learning  
-**Department:** Artificial Intelligence and Data Science  
-**Academic Year:** 2026–2027
 
 ## 1. Introduction
 
