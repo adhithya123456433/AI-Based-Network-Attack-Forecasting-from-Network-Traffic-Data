@@ -1,0 +1,29 @@
+=== Network Attack Forecasting World Model Evaluation ===
+
+Forecasting Accuracy Across Horizons:
+  t+1 (+5s): 98.78%
+  t+2 (+10s): 98.40%
+  t+3 (+15s): 97.71%
+  t+4 (+20s): 97.33%
+
+Mean Reconstruction MSE: 0.004786
+
+                        precision    recall  f1-score   support
+
+         Benign Normal     0.9778    1.0000    0.9888      5288
+Reconnaissance (Probe)     0.9935    0.8489    0.9155       900
+    Initial Compromise     0.9492    0.9905    0.9694       944
+      Lateral Movement     0.9721    0.9541    0.9630      1132
+ Exfiltration & Impact     0.9945    0.9917    0.9931      3256
+
+              accuracy                         0.9806     11520
+             macro avg     0.9774    0.9570    0.9660     11520
+          weighted avg     0.9808    0.9806    0.9802     11520
+
+
+Confusion Matrix:
+[[5288    0    0    0    0]
+ [ 120  764   16    0    0]
+ [   0    5  935    4    0]
+ [   0    0   34 1080   18]
+ [   0    0    0   27 3229]]
