@@ -61,11 +61,11 @@ This project uses deep learning to analyse network traffic and predict possible 
 
 ## 5. Dataset
 
-The system can use synthetic network traffic data and public datasets such as CIC-IDS2017.
+This project uses the CIC-IDS2017 dataset for network traffic analysis and attack prediction.
 
-The data may contain packet counts, bytes transferred, TCP flags, destination ports, and connection statistics.
+The dataset contains network traffic records with features such as packet counts, bytes transferred, TCP flags, destination ports, and connection statistics.
 
-The dataset is processed before being used to train and test the model.
+The data is preprocessed and used to train, test, and evaluate the deep learning model for network attack forecasting.
 
 ## 6. Main Features
 
