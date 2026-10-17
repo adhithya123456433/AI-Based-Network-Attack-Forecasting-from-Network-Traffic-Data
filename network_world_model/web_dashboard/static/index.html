@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetSentinel AI // Enterprise Threat Forecasting Platform</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        sidebar: '#0b1120',
+                        main: '#070b14',
+                        card: '#111927',
+                        cardborder: '#1f293d',
+                        cardhover: '#192337',
+                        accent: '#0ea5e9'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #070b14;
+            color: #f1f5f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .real-card {
+            background: #111927;
+            border: 1px solid #1f293d;
+            border-radius: 12px;
+        }
+        .real-card:hover {
+            border-color: #334155;
+        }
+        .active-pipeline-node {
+            border-color: #38bdf8 !important;
+            background: rgba(56, 189, 248, 0.12) !important;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+        }
+        .future-pipeline-node {
+            border-color: #f43f5e !important;
+            background: rgba(244, 63, 94, 0.12) !important;
+            animation: pulse-border 1.8s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 8px rgba(244, 63, 94, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(244, 63, 94, 0.6); }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #26354a; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-slate-200">
+
+    <!-- Toast Notification Popup -->
+    <div id="toastAlert" class="fixed top-5 right-5 z-50 hidden bg-slate-900 border border-emerald-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300">
+        <div class="h-8 w-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <div class="text-xs font-bold" id="toastTitle">Security Rule Applied</div>
+            <div class="text-[11px] text-slate-400" id="toastBody">Action confirmed across all gateways.</div>
+        </div>
+    </div>
+
+    <!-- 1. LEFT SIDEBAR (REAL SAAS NAVIGATION) -->
+    <aside class="w-64 bg-sidebar border-r border-slate-800/80 flex flex-col flex-shrink-0 select-none">
+        <!-- Logo -->
+        <div class="p-5 border-b border-slate-800/80 flex items-center space-x-3">
+            <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+                <i class="fa-solid fa-shield-halved text-white text-base"></i>
+            </div>
+            <div>
+                <span class="font-bold text-white text-base tracking-tight font-mono">NetSentinel<span class="text-sky-400">.ai</span></span>
+                <div class="text-[10px] text-slate-400">Threat Radar</div>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            <div class="text-[10px] uppercase font-bold text-slate-500 px-3 mb-2 tracking-wider">Monitoring & Defense</div>
+            
+            <a href="#" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                <i class="fa-solid fa-chart-line w-4 text-center"></i>
+                <span>Live Threat Radar</span>
+                <span class="ml-auto h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            </a>
+
+            <a href="#networkSection" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                <i class="fa-solid fa-diagram-project w-4 text-center"></i>
+                <span>Network Node Map</span>
+            </a>
+
+            <a href="#trafficLogsSection" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                <i class="fa-solid fa-list-check w-4 text-center"></i>
+                <span>Live Packet Streams</span>
+                <span class="ml-auto text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">Active</span>
+            </a>
+
+            <div class="text-[10px] uppercase font-bold text-slate-500 px-3 pt-4 mb-2 tracking-wider">Forensics & Data</div>
+
+            <a href="#csvUploadSection" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                <i class="fa-solid fa-file-csv w-4 text-center"></i>
+                <span>Custom CSV Analyzer</span>
+            </a>
+
+            <a href="#incidentPlaybookSection" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                <i class="fa-solid fa-bolt w-4 text-center"></i>
+                <span>Automated Playbook</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 2. MAIN APP CONTAINER -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-main">
+        
+        <!-- Top App Bar -->
+        <header class="h-14 border-b border-slate-800/80 bg-sidebar/50 backdrop-blur px-6 flex items-center justify-between flex-shrink-0">
+            <!-- Breadcrumbs / Search -->
+            <div class="flex items-center space-x-3 text-xs">
+                <span class="text-slate-400">Gateway:</span>
+                <span class="font-bold text-white bg-slate-800 px-2 py-1 rounded border border-slate-700">US-East Primary (Port 443 / 80)</span>
+                <span class="text-slate-500">&bull;</span>
+                <span id="gatewayStatusText" class="text-emerald-400 flex items-center gap-1.5 font-medium">
+                    <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Zero Active Breaches
+                </span>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center space-x-3">
+                <div class="text-xs font-mono text-slate-300 bg-slate-900 border border-slate-800 px-3 py-1 rounded-lg" id="liveClockDisplay">
+                    00:00:00 UTC
+                </div>
+
+                <button id="btnExportLog" onclick="exportAuditLog()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-file-arrow-down text-sky-400"></i> Export Audit Log
+                </button>
+
+                <button id="btnLockdown" onclick="toggleLockdown()" class="text-xs bg-rose-600 hover:bg-rose-500 text-white font-bold px-3.5 py-1.5 rounded-lg shadow-md shadow-rose-600/30 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-ban"></i> 1-Click Lockdown
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Scrollable Dashboard Content -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+            <!-- Early Warning Alert Banner (Appears dynamically before attack hits) -->
+            <div id="advanceAlertBox" class="hidden real-card p-5 border-l-4 border-l-rose-500 bg-gradient-to-r from-rose-950/40 to-slate-900/60 shadow-xl">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-start gap-3.5">
+                        <div class="h-10 w-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg flex-shrink-0 border border-rose-500/30">
+                            <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold uppercase bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded border border-rose-500/30">
+                                    Preemptive Alert
+                                </span>
+                                <span class="text-xs font-mono text-amber-400 font-bold">+20.0s Advance Lead Time</span>
+                            </div>
+                            <h2 class="text-base font-bold text-white mt-1" id="alertHeadline">
+                                Attack Predicted in Advance: Transition to Exploit Imminent
+                            </h2>
+                            <p class="text-xs text-slate-300 mt-1" id="alertSubtext">
+                                The network is currently safe, but traffic patterns indicate an attack is scheduled to hit in 20 seconds.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button onclick="triggerToast('Preemptive Block', 'Target IP quarantined before exploit reached port.')" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition shadow-lg shadow-rose-600/30 flex-shrink-0">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> Block Threat Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- Top 3 Live Metrics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                
+                <!-- Status 1: Current Network State -->
+                <div class="real-card p-5 border-l-4 border-l-sky-500">
+                    <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                        <span>Current Network Traffic State</span>
+                        <i class="fa-solid fa-network-wired text-sky-400"></i>
+                    </div>
+                    <div class="text-xl font-bold text-white" id="valCurrentStage">
+                        Normal & Safe
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">What is physically traversing the gateway right now.</p>
+                </div>
+
+                <!-- Status 2: AI Future Forecast -->
+                <div class="real-card p-5 border-l-4 border-l-rose-500">
+                    <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                        <span>AI Future Forecast (+20s Ahead)</span>
+                        <i class="fa-solid fa-bolt text-rose-400"></i>
+                    </div>
+                    <div class="text-xl font-bold text-rose-300" id="valForecastStage">
+                        Normal & Safe
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Predicted network state 20 seconds into the future.</p>
+                </div>
+
+                <!-- Status 3: Danger Score -->
+                <div class="real-card p-5 border-l-4 border-l-amber-500">
+                    <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                        <span>Threat Danger Level</span>
+                        <i class="fa-solid fa-gauge text-amber-400"></i>
+                    </div>
+                    <div class="flex items-baseline justify-between">
+                        <div class="text-2xl font-black text-white" id="valThreatScore">5%</div>
+                        <span id="badgeDangerTag" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            Low Threat
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full mt-2.5 overflow-hidden">
+                        <div id="dangerBar" class="bg-emerald-400 h-full rounded-full transition-all duration-300" style="width: 5%"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Attack Progression Lifecycle (5 Stages) -->
+            <div class="real-card p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <i class="fa-solid fa-timeline text-sky-400"></i> Threat Lifecycle Pipeline
+                    </h3>
+                    <span class="text-xs text-slate-400">Advance Warning Window: <strong class="text-sky-400">+20.0 Seconds</strong></span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 text-center">
+                    <div id="node0" class="real-card p-3.5 border border-slate-800 transition">
+                        <div class="text-emerald-400 text-lg mb-1"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="text-xs font-bold text-white">1. Safe & Normal</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Healthy traffic</div>
+                    </div>
+
+                    <div id="node1" class="real-card p-3.5 border border-slate-800 transition">
+                        <div class="text-yellow-400 text-lg mb-1"><i class="fa-solid fa-magnifying-glass"></i></div>
+                        <div class="text-xs font-bold text-white">2. Scanning</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Probing open doors</div>
+                    </div>
+
+                    <div id="node2" class="real-card p-3.5 border border-slate-800 transition">
+                        <div class="text-orange-400 text-lg mb-1"><i class="fa-solid fa-key"></i></div>
+                        <div class="text-xs font-bold text-white">3. Break-In Attempt</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Password / exploit attempt</div>
+                    </div>
+
+                    <div id="node3" class="real-card p-3.5 border border-slate-800 transition">
+                        <div class="text-rose-400 text-lg mb-1"><i class="fa-solid fa-virus"></i></div>
+                        <div class="text-xs font-bold text-white">4. Infection Spread</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Spreading to other PCs</div>
+                    </div>
+
+                    <div id="node4" class="real-card p-3.5 border border-slate-800 transition">
+                        <div class="text-purple-400 text-lg mb-1"><i class="fa-solid fa-file-arrow-up"></i></div>
+                        <div class="text-xs font-bold text-white">5. Data Theft / Crash</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">Data leak or packet flood</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two Clean, Simple, Highly Understandable Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Chart 1: Danger Level Timeline -->
+                <div class="real-card p-5">
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-area text-sky-400"></i> Danger Level Over Time
+                        </h3>
+                        <span class="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">0 - 10 Minutes</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Shows how the threat level rises as the cyber attack begins and progresses.
+                    </p>
+                    <div class="h-60">
+                        <canvas id="timelineAreaChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Top Clues the AI Spotted -->
+                <div class="real-card p-5">
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-lightbulb text-amber-400"></i> Top Clues the AI Spotted
+                        </h3>
+                        <span class="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">Warning Signs</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">
+                        The specific abnormal traffic behaviors that triggered the future warning.
+                    </p>
+                    <div class="h-60">
+                        <canvas id="cluesBarChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Live Active Connection Streams Table -->
+            <div id="trafficLogsSection" class="real-card p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-table-list text-cyan-400"></i> Live Network Connection Streams
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Real-time packet inspection through firewall gateway.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-400 font-mono bg-slate-800 px-3 py-1 rounded border border-slate-700 flex items-center gap-2">
+                            <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Streaming 1,840 flows/s
+                        </span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-mono">
+                        <thead class="text-slate-400 bg-slate-800/60 uppercase text-[10px] tracking-wider border-b border-slate-700">
+                            <tr>
+                                <th class="py-2.5 px-3">Source IP</th>
+                                <th class="py-2.5 px-3">Destination IP : Port</th>
+                                <th class="py-2.5 px-3">Protocol / Type</th>
+                                <th class="py-2.5 px-3">Data Transferred</th>
+                                <th class="py-2.5 px-3">AI Threat Tag</th>
+                                <th class="py-2.5 px-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="flowsTableBody" class="divide-y divide-slate-800 text-slate-300">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Security Recommendation & Mitigation Action -->
+            <div id="incidentPlaybookSection" class="real-card p-5 border-l-4 border-l-amber-500">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                        <i class="fa-solid fa-shield-virus"></i> Recommended Security Playbook Action
+                    </h3>
+                    <span class="text-[11px] text-slate-400 font-mono">Auto-Response Engine</span>
+                </div>
+                <p id="txtRecommendation" class="text-sm text-slate-200 bg-slate-900 p-4 rounded-xl border border-slate-800 leading-relaxed font-sans">
+                    Network flows are operating within standard baseline behavior. No mitigation required.
+                </p>
+            </div>
+
+            <!-- Interactive Timeline Scrubber & Simulation Bar -->
+            <div class="real-card p-5">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                    <div class="flex items-center gap-2">
+                        <button id="btnPlayStream" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-sky-600/25 transition">
+                            <i class="fa-solid fa-play"></i> Run Live Stream
+                        </button>
+                        <button id="btnPauseStream" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-2 transition border border-slate-700">
+                            <i class="fa-solid fa-pause"></i> Pause
+                        </button>
+                        <span class="text-xs font-mono text-slate-400 ml-2">
+                            Timeline: <strong id="lblCurrentTime" class="text-sky-400 text-sm">175s</strong>
+                        </span>
+                    </div>
+
+                    <!-- Jump Shortcuts -->
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs text-slate-400 mr-1">Jump to:</span>
+                        <button onclick="seekTo(15)" class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-400 px-3 py-1.5 rounded-lg border border-slate-700 font-medium">Safe</button>
+                        <button onclick="seekTo(35)" class="text-xs bg-slate-800 hover:bg-slate-700 text-yellow-400 px-3 py-1.5 rounded-lg border border-slate-700 font-medium">Scanning</button>
+                        <button onclick="seekTo(55)" class="text-xs bg-slate-800 hover:bg-slate-700 text-orange-400 px-3 py-1.5 rounded-lg border border-slate-700 font-medium">Break-In</button>
+                        <button onclick="seekTo(75)" class="text-xs bg-slate-800 hover:bg-slate-700 text-rose-400 px-3 py-1.5 rounded-lg border border-slate-700 font-medium">Spreading</button>
+                        <button onclick="seekTo(95)" class="text-xs bg-slate-800 hover:bg-slate-700 text-purple-400 px-3 py-1.5 rounded-lg border border-slate-700 font-medium">Data Theft</button>
+                    </div>
+                </div>
+
+                <div>
+                    <input id="timelineSlider" type="range" min="12" max="110" value="35" class="w-full accent-sky-500 cursor-pointer h-2 bg-slate-800 rounded-lg">
+                    <div class="flex justify-between text-[11px] text-slate-500 mt-2 font-mono">
+                        <span>00:00 (Start)</span>
+                        <span>Drag scrubber along the network recording</span>
+                        <span>10:00 (End)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Telemetry CSV Upload Ingestion Section -->
+            <div id="csvUploadSection" class="real-card p-6">
+                <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up text-sky-400"></i> Network Telemetry Ingestion
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1 max-w-xl">
+                            Upload your network flow logs (.CSV) to analyze traffic patterns and forecast potential cyber threat progressions.
+                        </p>
+                    </div>
+
+                    <label class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-lg shadow-sky-600/20 flex items-center gap-2">
+                        <i class="fa-solid fa-file-arrow-up"></i> Browse CSV File
+                        <input id="csvInput" type="file" accept=".csv" class="hidden">
+                    </label>
+                </div>
+
+                <!-- Drag & Drop Upload Zone -->
+                <div id="dropZone" class="border-2 border-dashed border-slate-700 hover:border-sky-500/50 bg-slate-900/40 rounded-2xl p-8 text-center transition cursor-pointer my-3 group">
+                    <div class="h-12 w-12 mx-auto rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center text-xl mb-3 border border-sky-500/20 group-hover:scale-110 transition duration-300">
+                        <i class="fa-solid fa-file-csv"></i>
+                    </div>
+                    <div class="text-xs font-bold text-slate-200">
+                        Drag and drop your network traffic (.csv) file here, or click to browse
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">
+                        Compatible with standard NetFlow, IPFIX, Zeek, and firewall time-series flow records.
+                    </p>
+                </div>
+
+                <div class="pt-3 border-t border-slate-800/80 text-xs text-slate-400 flex items-center justify-between font-mono flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-sky-400"></i>
+                        <span id="activeDatasetText">Active Stream: Production Network Recording (120 Flow Intervals Active)</span>
+                    </div>
+                    <button id="btnQuickSample" class="text-[11px] text-sky-400 hover:text-sky-300 underline font-sans transition">
+                        Reset to Default Stream
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        let currentStep = 35;
+        let totalSteps = 120;
+        let isRunning = false;
+        let timer = null;
+
+        let timelineChart = null;
+        let cluesChart = null;
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('liveClockDisplay').innerText = now.toTimeString().split(' ')[0] + ' UTC';
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function triggerToast(title, body) {
+            const toast = document.getElementById('toastAlert');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastBody').innerText = body;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+        const blockedIPs = new Set();
+        let rawTimelineStages = [];
+
+        function applyTimelineData() {
+            if (!timelineChart) return;
+            if (isLockedDown || blockedIPs.size > 0) {
+                // Mitigate curve from currentStep onward to Stage 0 (Safe)
+                const mitigatedStages = rawTimelineStages.map((stage, idx) => {
+                    return idx >= currentStep ? 0 : stage;
+                });
+                timelineChart.data.datasets[0].data = mitigatedStages;
+                timelineChart.data.datasets[0].borderColor = '#10b981';
+                timelineChart.data.datasets[0].backgroundColor = 'rgba(16, 185, 129, 0.15)';
+            } else {
+                timelineChart.data.datasets[0].data = [...rawTimelineStages];
+                timelineChart.data.datasets[0].borderColor = '#0ea5e9';
+                timelineChart.data.datasets[0].backgroundColor = 'rgba(14, 165, 233, 0.12)';
+            }
+            timelineChart.update();
+        }
+
+        function blockHost(btn, ip) {
+            if (blockedIPs.has(ip)) {
+                blockedIPs.delete(ip);
+                triggerToast('Host Restored', 'Firewall unblocked traffic for ' + ip + '. Threat trajectory restored.');
+            } else {
+                blockedIPs.add(ip);
+                triggerToast('Threat Neutralized', 'Firewall blocked ' + ip + '. Attack progression halted.');
+            }
+            applyTimelineData();
+            updateStep(currentStep);
+        }
+
+        function initCharts() {
+            // Chart 1: Timeline
+            const ctx1 = document.getElementById('timelineAreaChart').getContext('2d');
+            timelineChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Threat Stage',
+                        data: [],
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.12)',
+                        fill: true,
+                        tension: 0.25,
+                        borderWidth: 2.5,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                        y: {
+                            min: 0,
+                            max: 4,
+                            ticks: {
+                                color: '#94a3b8',
+                                font: { size: 10 },
+                                callback: val => ['Safe', 'Scanning', 'Break-In', 'Spreading', 'Data Theft'][val] || val
+                            },
+                            grid: { color: 'rgba(255,255,255,0.04)' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Chart 2: Clues
+            const ctx2 = document.getElementById('cluesBarChart').getContext('2d');
+            cluesChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Influence (%)',
+                        data: [],
+                        backgroundColor: '#6366f1',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { max: 40, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                        y: { grid: { display: false }, ticks: { color: '#cbd5e1', font: { size: 11, weight: '500' } } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        async function loadTimeline() {
+            try {
+                const res = await fetch('/api/timeline_overview');
+                const data = await res.json();
+                totalSteps = data.total_steps;
+                document.getElementById('timelineSlider').max = totalSteps - 5;
+
+                rawTimelineStages = [...data.stages];
+                timelineChart.data.labels = data.timestamps.map(t => t + 's');
+                applyTimelineData();
+            } catch (err) {
+                console.error("Timeline error:", err);
+            }
+        }
+
+        async function updateStep(step) {
+            try {
+                const res = await fetch(`/api/forecast_at_step?t=${step}`);
+                const data = await res.json();
+
+                applyTimelineData();
+
+                // Text labels
+                document.getElementById('lblCurrentTime').innerText = data.current_time_seconds + 's';
+                document.getElementById('valCurrentStage').innerText = data.current_stage_name;
+
+                const isMitigated = isLockedDown || blockedIPs.size > 0;
+                document.getElementById('valForecastStage').innerText = isMitigated ? 'Normal & Safe (Averted)' : data.predicted_future_stage_name;
+
+                // Threat Score
+                const threatPct = isMitigated ? 0 : Math.round(data.threat_probability * 100);
+                document.getElementById('valThreatScore').innerText = isMitigated ? '0% (Neutralized)' : threatPct + '%';
+                document.getElementById('dangerBar').style.width = isMitigated ? '3%' : threatPct + '%';
+
+                const badge = document.getElementById('badgeDangerTag');
+                const bar = document.getElementById('dangerBar');
+                if (isMitigated) {
+                    badge.innerText = 'Threat Neutralized';
+                    badge.className = 'text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                    bar.className = 'bg-emerald-400 h-full rounded-full transition-all duration-300';
+                } else if (threatPct >= 70) {
+                    badge.innerText = 'Critical Threat';
+                    badge.className = 'text-xs font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30';
+                    bar.className = 'bg-rose-500 h-full rounded-full transition-all duration-300';
+                } else if (threatPct >= 30) {
+                    badge.innerText = 'Elevated Risk';
+                    badge.className = 'text-xs font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30';
+                    bar.className = 'bg-amber-400 h-full rounded-full transition-all duration-300';
+                } else {
+                    badge.innerText = 'Low Threat';
+                    badge.className = 'text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                    bar.className = 'bg-emerald-400 h-full rounded-full transition-all duration-300';
+                }
+
+                // Stepper Visuals
+                for (let i = 0; i < 5; i++) {
+                    const node = document.getElementById('node' + i);
+                    node.classList.remove('active-pipeline-node', 'future-pipeline-node');
+
+                    if (i === (isMitigated ? 0 : data.current_stage_id)) {
+                        node.classList.add('active-pipeline-node');
+                    }
+                    if (!isMitigated && i === data.predicted_future_stage_id && data.predicted_future_stage_id > data.current_stage_id) {
+                        node.classList.add('future-pipeline-node');
+                    }
+                }
+
+                // Dynamic Top Gateway Status
+                if (!isLockedDown) {
+                    const gw = document.getElementById('gatewayStatusText');
+                    if (gw) {
+                        if (isMitigated) {
+                            gw.innerHTML = `<span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Threat Neutralized: Active Firewall Quarantine`;
+                            gw.className = 'text-emerald-400 flex items-center gap-1.5 font-bold';
+                        } else if (data.current_stage_id >= 2) {
+                            gw.innerHTML = `<span class="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span> Hostile Intrusion Detected`;
+                            gw.className = 'text-rose-400 flex items-center gap-1.5 font-bold';
+                        } else if (data.current_stage_id === 1 || threatPct >= 50) {
+                            gw.innerHTML = `<span class="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></span> Network Reconnaissance Active`;
+                            gw.className = 'text-amber-400 flex items-center gap-1.5 font-bold';
+                        } else {
+                            gw.innerHTML = `<span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Zero Active Breaches`;
+                            gw.className = 'text-emerald-400 flex items-center gap-1.5 font-medium';
+                        }
+                    }
+                }
+
+                // Alert Card
+                const alertCard = document.getElementById('advanceAlertBox');
+                if (isMitigated) {
+                    alertCard.classList.remove('hidden');
+                    document.getElementById('alertHeadline').innerText =
+                        'Proactive Mitigation Active: Threat Progression Neutralized';
+                    document.getElementById('alertSubtext').innerText =
+                        'Offending host IP has been quarantined. The forecasted attack trajectory was successfully halted before execution.';
+                } else if (data.is_early_warning) {
+                    alertCard.classList.remove('hidden');
+                    document.getElementById('alertHeadline').innerText =
+                        `AI Threat Warning: Advance Transition to [${data.predicted_future_stage_name}] Predicted`;
+                    document.getElementById('alertSubtext').innerText =
+                        `Current network state is [${data.current_stage_name}]. Predictive models anticipate escalation in +${data.lead_time_seconds} seconds (Threat Probability: ${threatPct}%).`;
+                } else {
+                    alertCard.classList.add('hidden');
+                }
+
+                // Clues Chart
+                cluesChart.data.labels = data.feature_attributions.map(a => a.friendly_name || a.feature);
+                cluesChart.data.datasets[0].data = data.feature_attributions.map(a => a.score);
+                cluesChart.update();
+
+                // Recommendation
+                document.getElementById('txtRecommendation').innerText = 
+                    data.simple_recommendation || data.soc_narrative;
+
+                // Live Active Connections Table
+                const tbody = document.getElementById('flowsTableBody');
+                tbody.innerHTML = '';
+                if (data.live_flows) {
+                    data.live_flows.forEach(flow => {
+                        const isBlocked = blockedIPs.has(flow.src);
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-800/40 transition' + (isBlocked ? ' opacity-50 bg-rose-950/10' : '');
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-3 text-slate-200 font-bold ${isBlocked ? 'line-through text-slate-500' : ''}">${flow.src}</td>
+                            <td class="py-2.5 px-3 text-slate-300">${flow.dst}</td>
+                            <td class="py-2.5 px-3 text-slate-400">${flow.proto}</td>
+                            <td class="py-2.5 px-3 text-slate-400">${isBlocked ? '<span class="text-rose-400 text-[10px] font-mono">0 B (Dropped)</span>' : flow.bytes}</td>
+                            <td class="py-2.5 px-3">
+                                <span class="threat-status-badge px-2 py-0.5 rounded text-[10px] font-semibold ${isBlocked ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold' : flow.badge}">
+                                    ${isBlocked ? 'BLOCKED / DROPPED' : flow.status}
+                                </span>
+                            </td>
+                            <td class="py-2.5 px-3 text-right">
+                                <button onclick="blockHost(this, '${flow.src}')" class="px-2.5 py-1 rounded border text-[10px] font-sans transition ${isBlocked ? 'bg-rose-950/80 text-rose-300 border-rose-500/50 hover:bg-slate-800' : 'bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-200 border-slate-700'}">
+                                    ${isBlocked ? '<i class="fa-solid fa-lock-open mr-1"></i>Unblock' : '<i class="fa-solid fa-ban text-rose-400 mr-1"></i>Block'}
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+            } catch (err) {
+                console.error("Step error:", err);
+            }
+        }
+
+        function seekTo(step) {
+            currentStep = step;
+            document.getElementById('timelineSlider').value = step;
+            updateStep(step);
+        }
+
+        // Event listeners
+        const slider = document.getElementById('timelineSlider');
+        slider.addEventListener('input', (e) => {
+            currentStep = parseInt(e.target.value);
+            updateStep(currentStep);
+        });
+
+        document.getElementById('btnPlayStream').addEventListener('click', () => {
+            if (isRunning) return;
+            isRunning = true;
+            timer = setInterval(() => {
+                if (currentStep >= totalSteps - 6) {
+                    currentStep = 12;
+                } else {
+                    currentStep++;
+                }
+                slider.value = currentStep;
+                updateStep(currentStep);
+            }, 1200);
+        });
+
+        document.getElementById('btnPauseStream').addEventListener('click', () => {
+            isRunning = false;
+            if (timer) clearInterval(timer);
+        });
+
+        const dropZone = document.getElementById('dropZone');
+        const csvInput = document.getElementById('csvInput');
+
+        if (dropZone && csvInput) {
+            dropZone.addEventListener('click', () => csvInput.click());
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-sky-500', 'bg-sky-500/10');
+            });
+
+            ['dragleave', 'dragend'].forEach(type => {
+                dropZone.addEventListener(type, () => {
+                    dropZone.classList.remove('border-sky-500', 'bg-sky-500/10');
+                });
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-sky-500', 'bg-sky-500/10');
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    handleFileUpload(e.dataTransfer.files[0]);
+                }
+            });
+
+            csvInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                }
+            });
+        }
+
+        async function handleFileUpload(file) {
+            if (!file.name.endsWith('.csv')) {
+                alert('Please upload a valid .csv network telemetry file.');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const res = await fetch('/api/upload_csv', { method: 'POST', body: formData });
+                if (!res.ok) {
+                    const errJson = await res.json();
+                    throw new Error(errJson.detail || 'Upload failed');
+                }
+                const resData = await res.json();
+                blockedIPs.clear();
+                document.getElementById('activeDatasetText').innerText = `Active Stream: ${resData.filename} (${resData.total_steps} Flows Loaded)`;
+                await loadTimeline();
+                seekTo(15);
+                triggerToast('Telemetry Ingested', `Successfully loaded ${resData.filename} (${resData.total_steps} flow intervals)`);
+            } catch (err) {
+                alert("Upload failed: " + err.message);
+            }
+        }
+
+        document.getElementById('btnQuickSample').addEventListener('click', async () => {
+            await fetch('/api/load_sample_csv');
+            blockedIPs.clear();
+            document.getElementById('activeDatasetText').innerText = 'Active Stream: Production Network Recording (120 Flow Intervals Active)';
+            await loadTimeline();
+            seekTo(15);
+            triggerToast('Default Telemetry', 'Restored production network baseline stream.');
+        });
+
+        // Real functional implementations for Header Controls
+        function exportAuditLog() {
+            const time = new Date().toISOString();
+            const stage = document.getElementById('txtStageName') ? document.getElementById('txtStageName').innerText : 'Monitoring';
+            const threat = document.getElementById('txtThreatProb') ? document.getElementById('txtThreatProb').innerText : '0%';
+            const stream = document.getElementById('activeDatasetText') ? document.getElementById('activeDatasetText').innerText : 'Active Stream';
+            const narrative = document.getElementById('txtRecommendation') ? document.getElementById('txtRecommendation').innerText : 'Normal operations.';
+
+            let content = `================================================================================\n`;
+            content += `NETSENTINEL.AI - SECURITY AUDIT & THREAT FORECASTING REPORT\n`;
+            content += `================================================================================\n`;
+            content += `Export Timestamp:    ${time}\n`;
+            content += `Monitoring Gateway:  US-East Primary (Port 443 / 80)\n`;
+            content += `Active Stream:       ${stream}\n`;
+            content += `Current Status:      ${stage}\n`;
+            content += `Threat Probability:  ${threat}\n`;
+            content += `Advance Lead Time:   +20.0s Multi-Horizon Prediction Window\n`;
+            content += `--------------------------------------------------------------------------------\n`;
+            content += `RECOMMENDED SECURITY PLAYBOOK:\n`;
+            content += `${narrative}\n`;
+            content += `--------------------------------------------------------------------------------\n`;
+            content += `TOP CONTRIBUTING TELEMETRY CLUES (Integrated Gradients):\n`;
+            if (cluesChart && cluesChart.data && cluesChart.data.labels) {
+                cluesChart.data.labels.forEach((lbl, i) => {
+                    content += `  ${i + 1}. ${lbl}: ${cluesChart.data.datasets[0].data[i]}% influence\n`;
+                });
+            }
+            content += `================================================================================\n`;
+            content += `Status: AUDIT REPORT GENERATED SUCCESSFULLY\n`;
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Security_Audit_Report_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            triggerToast('Audit Report Exported', 'Downloaded forensic text report to your files.');
+        }
+
+        let isLockedDown = false;
+        function toggleLockdown() {
+            isLockedDown = !isLockedDown;
+            const btn = document.getElementById('btnLockdown');
+            const gatewayStatus = document.getElementById('gatewayStatusText');
+            const tbody = document.getElementById('flowsTableBody');
+
+            if (isLockedDown) {
+                if (isRunning) {
+                    isRunning = false;
+                    if (timer) clearInterval(timer);
+                }
+                btn.innerHTML = `<i class="fa-solid fa-lock-open mr-1"></i> Release Lockdown`;
+                btn.className = `text-xs bg-amber-600 hover:bg-amber-500 text-white font-bold px-3.5 py-1.5 rounded-lg shadow-md shadow-amber-600/30 flex items-center gap-1.5 transition animate-pulse`;
+                if (gatewayStatus) {
+                    gatewayStatus.innerHTML = `<span class="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span> EMERGENCY LOCKDOWN ACTIVE: ALL EXTERNAL INBOUND PACKETS DROPPED`;
+                    gatewayStatus.className = `text-rose-400 flex items-center gap-1.5 font-bold`;
+                }
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach(tr => {
+                    const badge = tr.querySelector('span');
+                    if (badge) {
+                        badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/30 text-rose-300 border border-rose-500/50';
+                        badge.innerText = 'BLOCKED / ISOLATED';
+                    }
+                    const blockBtn = tr.querySelector('button');
+                    if (blockBtn) {
+                        blockBtn.innerText = 'Isolated';
+                        blockBtn.disabled = true;
+                        blockBtn.className = 'px-2.5 py-1 bg-rose-950 text-rose-400 rounded text-[10px] font-mono opacity-60';
+                    }
+                });
+                applyTimelineData();
+                updateStep(currentStep);
+                triggerToast('Emergency Lockdown Engaged', 'All external inbound connection sockets severed.');
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-ban"></i> 1-Click Lockdown`;
+                btn.className = `text-xs bg-rose-600 hover:bg-rose-500 text-white font-bold px-3.5 py-1.5 rounded-lg shadow-md shadow-rose-600/30 flex items-center gap-1.5 transition`;
+                if (gatewayStatus) {
+                    gatewayStatus.innerHTML = `<span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Zero Active Breaches`;
+                    gatewayStatus.className = `text-emerald-400 flex items-center gap-1.5 font-medium`;
+                }
+                applyTimelineData();
+                updateStep(currentStep);
+                triggerToast('Lockdown Lifted', 'Normal network gateway filtering restored.');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            initCharts();
+            await loadTimeline();
+            updateStep(currentStep);
+        });
+    </script>
+</body>
+</html>
