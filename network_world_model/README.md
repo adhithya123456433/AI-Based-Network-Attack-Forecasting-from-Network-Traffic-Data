@@ -16,7 +16,6 @@ Network attacks can cause data loss and security problems. Traditional security 
 
 This project uses deep learning to analyse network traffic and predict possible future attacks. It also uses Explainable AI to identify the important features behind predictions. A web dashboard displays predictions and security alerts.
 
-Project Dashboard: https://attending-raise-bolt-place.trycloudflare.com/
 
 ## 2. Objectives
 
