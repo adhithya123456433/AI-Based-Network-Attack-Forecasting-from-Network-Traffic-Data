@@ -78,39 +78,7 @@ The dataset is processed before being used to train and test the model.
 - Web dashboard with security alerts
 - Comparison with baseline models
 
-## 7. Installation
-
-### Step 1: Download the Project
-
-Download the project folder and open it in VS Code.
-
-### Step 2: Create a Virtual Environment
-
-```bash
-python -m venv venv
-```
-
-Activate it on Windows:
-
-```bash
-venv\Scripts\activate
-```
-
-### Step 3: Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-## 8. How to Run
-
-Run these commands from the project folder.
-
-**Generate sample data:**
-
-```bash
-python generate_sample_data.py
-```
+## 7. Model Training and Execution
 
 **Train the model:**
 
@@ -142,11 +110,9 @@ python compare_models.py
 python run_dashboard.py
 ```
 
-Open the local URL shown in the terminal to access the dashboard.
-
 These commands require the corresponding scripts and dependencies to be implemented correctly.
 
-## 9. Model Evaluation
+## 8. Model Evaluation
 
 The model can be evaluated using:
 
@@ -158,13 +124,13 @@ The model can be evaluated using:
 
 The prediction horizons are 5, 10, 15, and 20 seconds. Actual performance must be measured through testing.
 
-## 10. Conclusion
+## 9. Conclusion
 
 This project aims to predict possible network attacks using deep learning. It combines network traffic analysis, future attack prediction, and Explainable AI.
 
 The dashboard helps users understand predictions and view security alerts. Testing on real-world datasets will help determine the effectiveness of the proposed system.
 
-## 11. References
+## 10. References
 
 1. Ha, D., and Schmidhuber, J. (2018). *World Models*.
 2. Sundararajan, M., Taly, A., and Yan, Q. (2017). *Axiomatic Attribution for Deep Networks*.
