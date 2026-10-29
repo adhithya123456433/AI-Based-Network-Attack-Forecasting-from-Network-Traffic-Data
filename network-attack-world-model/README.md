@@ -11,6 +11,14 @@
 | 24BAD051 | Kabileeshwaran J |
 ---
 
+Project Overview
+
+Traditional Network Intrusion Detection Systems (NIDS) operate reactively: they flag malicious activity only after suspicious packets have entered the network or an exploit has already succeeded. By the time security teams receive an alert, systems may already be breached and sensitive data compromised.
+
+NetForecaster introduces a proactive defense framework powered by a Deep Learning Latent Dynamics World Model. Rather than analyzing static, isolated snapshots of network packets, our system continuously models the underlying temporal behavior of enterprise network traffic over 30-second observation windows and forecasts network states 5 steps into the future.
+
+By projecting network telemetry forward in time, the system identifies the early preparatory phases of cyber attacks (such as port scanning and brute-force authentication attempts) and issues actionable warnings before the attacker reaches the exploitation or data theft stages.
+
 ## 1. Project Architecture 
 
 ```
