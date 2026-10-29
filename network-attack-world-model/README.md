@@ -11,7 +11,7 @@
 | 24BAD051 | Kabileeshwaran J |
 ---
 
-Project Overview
+## Project Overview
 
 Traditional Network Intrusion Detection Systems (NIDS) operate reactively: they flag malicious activity only after suspicious packets have entered the network or an exploit has already succeeded. By the time security teams receive an alert, systems may already be breached and sensitive data compromised.
 
