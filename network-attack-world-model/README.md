@@ -1,7 +1,14 @@
-# AI-Based Network Attack Forecasting using a Latent Dynamics World Model
+# AI-Based-Network-Attack-Forecasting-from-Network-Traffic-Data
 
-A Deep Learning system that learns the underlying temporal physics of network traffic, forecasts future network states, and provides early warnings of multi-stage cyber attacks with explainable feature attribution.
+## Team Members
 
+| Register Number | Name |
+|---|---|
+| 24BAD004 | Adhithya K |
+| 24BAD007 | Akhil C |
+| 24BAD014 | Aswin S |
+| 24BAD048 | Jeevaprakash S |
+| 24BAD051 | Kabileeshwaran J |
 ---
 
 ## 1. Project Architecture (Deep Learning Only)
