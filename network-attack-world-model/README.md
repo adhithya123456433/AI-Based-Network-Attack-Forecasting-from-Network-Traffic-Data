@@ -11,7 +11,7 @@
 | 24BAD051 | Kabileeshwaran J |
 ---
 
-## 1. Project Architecture (Deep Learning Only)
+## 1. Project Architecture 
 
 ```
 Past Observation Window X[t-W : t]
