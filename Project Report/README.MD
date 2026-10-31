@@ -2,7 +2,7 @@
 
 ### NetForecaster – A Deep Learning Framework for Predictive Cybersecurity and Explainable Early Warning Detection
 
-WORD DOCUMENT : https://kumaragurudtsteam-my.sharepoint.com/:w:/g/personal/adhithya_24ad_kct_ac_in/cQqC4Mf3kqXrR6li8h9R4MEaEgUC34N8JN-Wnw4DYFMUWu-SIg
+WORD DOCUMENT LINK : https://kumaragurudtsteam-my.sharepoint.com/:w:/g/personal/adhithya_24ad_kct_ac_in/cQqC4Mf3kqXrR6li8h9R4MEaEgUC34N8JN-Wnw4DYFMUWu-SIg
 
 ## Project Overview
 
